@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 3 Interview Toolkit — Patterns &amp; Decision Trees</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f0e7; --paper-2:#efe9dc;
+    --ink:#161514; --rule:#111;
+    --teal:#1f97ae; --teal-soft:#5bc0d0;
+    --coral:#e0514c; --amber:#c98a2b; --muted:#726c60; --line:#d8d0be;
+    --code-bg:#191f26; --code-fg:#e7e3d8;
+    --code-com:#8aa889; --code-str:#e2b871; --code-kw:#5cc4da; --code-fn:#f0938c; --code-num:#c69cf0;
+    --disp:"Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);background-image:linear-gradient(var(--line) 1px, transparent 1px);background-size:100% 34px;color:var(--ink);font-family:var(--mono);min-height:100vh;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px;margin:0 auto;padding:26px 18px 60px;}
+
+  .kicker{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);font-weight:700;}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(24px,5.6vw,40px);line-height:.98;letter-spacing:-.01em;margin:4px 0 8px;}
+  .sub{font-size:13px;color:var(--muted);line-height:1.55;max-width:68ch;}
+  .rule{height:6px;background:var(--rule);border-radius:2px;margin:12px 0 14px;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:11.5px;color:var(--muted);margin:0 0 16px;align-items:center;}
+  .legend b{color:var(--ink);}
+  .dot{display:inline-flex;align-items:center;gap:6px;}
+  .pip{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid;}
+  .pip.core{background:var(--coral);border-color:var(--coral);}
+  .pip.build{background:transparent;border-color:var(--teal);}
+
+  .filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+  .chip{font-size:11.5px;font-weight:600;letter-spacing:.02em;padding:6px 11px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);border-radius:20px;cursor:pointer;transition:.12s;}
+  .chip:hover{background:var(--paper-2);}
+  .chip.active{background:var(--ink);color:var(--paper);}
+
+  .stage{perspective:1600px;margin-bottom:16px;}
+  .card{position:relative;width:100%;min-height:590px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.7,.2,1);cursor:pointer;}
+  .card.flipped{transform:rotateY(180deg);}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fbf8f1;border:2.5px solid var(--ink);border-radius:14px;box-shadow:7px 8px 0 rgba(17,17,17,.9);padding:24px 24px 20px;display:flex;flex-direction:column;overflow:hidden;}
+  .toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .eyebrow{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--teal);}
+  .tier{font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+  .tier.core{background:var(--coral);color:#fff;}
+  .tier.build{background:transparent;color:var(--teal);border:1.5px solid var(--teal);}
+
+  .front{align-items:stretch;text-align:center;}
+  .front .center{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  .term{font-family:var(--disp);font-weight:700;letter-spacing:-.01em;line-height:1.04;font-size:clamp(22px,5vw,36px);}
+  .hook{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5;max-width:42ch;font-style:italic;}
+  .practicewrap{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .practicelabel{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--amber);font-weight:700;}
+  .practicelist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:46ch;}
+  .practicepill{font-size:10.5px;font-weight:600;padding:4px 9px;border:1.5px solid var(--amber);color:#7a5817;border-radius:20px;background:#fbf3e6;}
+  .underbar{height:5px;width:min(360px,72%);background:var(--rule);border-radius:2px;margin:18px auto 0;}
+  .flip-hint{margin-top:16px;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;}
+  .flip-hint b{color:var(--coral);font-weight:700;}
+  .arrow{color:var(--coral);font-family:var(--disp);font-weight:700;}
+
+  .back{transform:rotateY(180deg);}
+  .backscroll{overflow-y:auto;flex:1;display:flex;flex-direction:column;padding-right:3px;}
+  .backscroll::-webkit-scrollbar{width:7px;}
+  .backscroll::-webkit-scrollbar-thumb{background:#cfc7b4;border-radius:4px;}
+  .bterm{font-family:var(--disp);font-weight:700;font-size:clamp(16px,3.4vw,21px);margin:3px 0 2px;line-height:1.08;}
+  .bmeta{font-size:10.5px;color:var(--muted);margin-bottom:8px;}
+  .thinrule{height:3px;background:var(--rule);border-radius:2px;margin:0 0 10px;}
+
+  .sectionlabel{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 5px;}
+  .approach{font-size:12.5px;line-height:1.5;color:#242019;margin:0 0 10px;}
+  .approach strong{color:var(--teal);font-weight:700;}
+  .approach code{background:var(--paper-2);border-radius:4px;padding:0 4px;font-size:11px;}
+
+  pre{margin:0 0 11px;background:var(--code-bg);color:var(--code-fg);border-radius:9px;padding:11px 12px;font-family:var(--mono);font-size:10.8px;line-height:1.52;overflow-x:visible;white-space:pre;border:1px solid #2b333d;}
+  pre::-webkit-scrollbar{height:8px;}
+  pre::-webkit-scrollbar-thumb{background:#39424d;border-radius:4px;}
+  .c-com{color:var(--code-com);font-style:italic;}.c-str{color:var(--code-str);}.c-kw{color:var(--code-kw);}.c-fn{color:var(--code-fn);}.c-num{color:var(--code-num);}
+
+  .cxbox{border-left:4px solid var(--teal);background:#eef8fa;border-radius:0 8px 8px 0;padding:9px 12px;margin:0 0 11px;}
+  .cxbox .cxrow{font-size:11.5px;line-height:1.48;color:#123a41;margin:2px 0;}
+  .cxbox .cxrow b{color:var(--teal);}
+
+  .triggerbox{border-left:4px solid var(--coral);background:#fbeeec;border-radius:0 8px 8px 0;padding:9px 12px;margin:0 0 11px;}
+  .triggerbox .tlabel{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);font-weight:700;display:block;margin-bottom:3px;}
+  .triggerbox .ttext{font-size:12px;line-height:1.45;color:#3a2320;}
+  .triggerbox .ttext strong{color:var(--coral);}
+
+  .decisionbox{margin:0 0 4px;}
+  .dlabel{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--amber);font-weight:700;margin-bottom:6px;}
+  .dlist{display:flex;flex-direction:column;gap:5px;}
+  .ditem{font-size:11px;line-height:1.42;color:#4a3714;background:#fbf3e6;border-left:3px solid var(--amber);border-radius:0 6px 6px 0;padding:6px 9px;}
+  .ditem b{color:#7a5817;}
+
+  .cx{margin-top:auto;padding-top:9px;font-size:10.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 14px;letter-spacing:.02em;border-top:1px dashed var(--line);}
+
+  .controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;}
+  .navbtn{font-family:var(--disp);font-weight:700;font-size:14px;padding:11px 16px;border:2.5px solid var(--ink);background:#fbf8f1;color:var(--ink);border-radius:11px;cursor:pointer;transition:.1s;box-shadow:3px 4px 0 rgba(17,17,17,.85);}
+  .navbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 5px 0 rgba(17,17,17,.85);}
+  .navbtn:active{transform:translate(2px,3px);box-shadow:1px 1px 0 rgba(17,17,17,.85);}
+  .flipbtn{background:var(--coral);color:#fff;}
+  .counter{font-family:var(--disp);font-weight:700;font-size:15px;text-align:center;min-width:70px;}
+  .counter small{display:block;font-family:var(--mono);font-weight:500;font-size:9.5px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:2px;line-height:1.3;}
+  .util{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+  .util .navbtn{font-size:12px;padding:8px 13px;box-shadow:2px 3px 0 rgba(17,17,17,.85);}
+  .foot{margin-top:26px;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
+  .kbd{font-family:var(--mono);border:1px solid var(--muted);border-radius:5px;padding:1px 6px;font-size:10.5px;}
+  @media (max-width:520px){.face{padding:18px 16px;}.navbtn{padding:10px 12px;}body{background-size:100% 30px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Python 3 &#x00B7; mechanics + patterns + judgment</div>
+    <h1>Interview Toolkit</h1>
+    <p class="sub">Three layers: the Python mechanics you'll type constantly (loops, list methods, conditionals), the five core patterns that cover most interview problems (two pointers, sliding window, hashing, BFS/DFS, binary search), and the decision trees that tell you which one to reach for in the first 30 seconds of a new prompt.</p>
+    <div class="rule"></div>
+    <div class="legend">
+      <span class="dot"><span class="pip core"></span><b>Core</b> — comes up constantly</span>
+      <span class="dot"><span class="pip build"></span><b>Supporting</b> — the variant/nuance layer</span>
+    </div>
+  </header>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="stage">
+    <div class="card" id="card" onclick="flip()">
+      <div class="face front">
+        <div class="toprow"><span class="eyebrow" id="f-track"></span><span class="tier" id="f-tier"></span></div>
+        <div class="center">
+          <div class="term" id="f-name"></div>
+          <div class="hook" id="f-hook"></div>
+          <div class="practicewrap" id="f-practicewrap"><span class="practicelabel">&#x25B8; Practice On</span><div class="practicelist" id="f-practice"></div></div>
+          <div class="underbar"></div>
+          <div class="flip-hint"><span class="arrow">&#x21BB;</span> flip for approach, code &amp; decision tree</div>
+        </div>
+      </div>
+      <div class="face back">
+        <div class="backscroll">
+          <div class="toprow"><span class="eyebrow" id="b-track"></span><span class="tier" id="b-tier"></span></div>
+          <div class="bterm" id="b-name"></div>
+          <div class="bmeta" id="b-meta"></div>
+          <div class="thinrule"></div>
+          <div class="sectionlabel">&#x25B8; Approach</div>
+          <div class="approach" id="b-approach"></div>
+          <pre id="b-code"></pre>
+          <div class="cxbox" id="b-cxbox"></div>
+          <div class="triggerbox" id="b-triggerwrap"><span class="tlabel">&#x25B8; Recognize It When</span><span class="ttext" id="b-trigger"></span></div>
+          <div class="decisionbox" id="b-decisionwrap"><div class="dlabel">&#x25B8; Decision Tree</div><div class="dlist" id="b-decision"></div></div>
+          <div class="cx" id="b-cx"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="navbtn" onclick="prev(event)">&#x2039; Prev</button>
+    <div class="counter"><span id="pos">1</span> / <span id="total">1</span><small id="deckname">All</small></div>
+    <button class="navbtn" onclick="next(event)">Next &#x203A;</button>
+  </div>
+  <div class="util">
+    <button class="navbtn flipbtn" onclick="flip(event)">Flip &#x27F3;</button>
+    <button class="navbtn" onclick="shuffle(event)">Shuffle &#x2928;</button>
+    <button class="navbtn" onclick="coreOnly(event)">Core only &#x2605;</button>
+    <button class="navbtn" onclick="reset(event)">Reset &#x21BA;</button>
+  </div>
+
+  <p class="foot">
+    <span class="kbd">&#x2190;</span>/<span class="kbd">&#x2192;</span> navigate &#x00B7; <span class="kbd">Space</span> flip &#x00B7; <span class="kbd">S</span> shuffle &#x00B7; <span class="kbd">C</span> core-only<br>
+    28 cards &#x00B7; mechanics &#x2192; patterns &#x2192; branching decision trees &#x2192; practice problems on every card
+  </p>
+</div>
+
+<script>
+const CARDS = [
+{track:"Orientation",tier:"build",name:"How This Deck Is Laid Out",
+ hook:"Three layers: tools, techniques, judgment.",
+ approach:"This deck layers three things: the Python mechanics you'll type constantly, the five core algorithmic patterns that cover the overwhelming majority of interview problems, and the decision trees that tell you which pattern to reach for in the first 30 seconds of a new prompt. Read front to back once, then use the filters to drill whichever layer feels shakiest.",
+ code:`Track A: Python Mechanics   -> the tools (loops, list methods,
+                               conditionals)
+Track B: Core Patterns      -> the techniques (5 patterns,
+                               2 cards each)
+Track C: Decision Trees     -> the judgment (when to reach
+                               for which)`,
+ cx:[["Read order","mechanics first if Python syntax feels rusty; jump straight to patterns if it doesn't"]],
+ trigger:"Use the Track C decision-tree cards as your final review the night before \u2014 they're the compressed version of everything else in this deck.",
+ decision:[],
+ cxfoot:["applies across: <b>the whole deck</b>"]},
+
+/* ===== TRACK A: PYTHON MECHANICS ===== */
+{track:"A \u00B7 Array & List Methods",tier:"core",name:"Array/List Methods & Their Complexity",
+ hook:"Knowing which ops are O(1) vs O(n) IS the optimization, half the time.",
+ approach:"The list methods you'll reach for constantly, with their real complexity. A \u201cclever\u201d solution that hides an O(n) list method inside a loop is often not clever at all \u2014 it's an accidental O(n\u00b2).",
+ code:`nums = [3, 1, 4, 1, 5]
+
+nums.append(9)        # O(1) amortized -- add to end
+nums.pop()             # O(1) -- remove from end
+nums.pop(0)             # O(n) -- remove from front, shifts all
+nums.insert(0, 7)        # O(n) -- insert at front, shifts all
+nums.remove(4)            # O(n) -- finds value, then shifts
+nums.index(5)               # O(n) -- linear search
+5 in nums                     # O(n) -- linear search on a list
+nums.sort()                     # O(n log n) -- in place (Timsort)
+sorted(nums)                      # O(n log n) -- returns a new list
+nums.reverse()                      # O(n) -- in place
+nums[1:3]                             # O(k) -- slicing copies k items
+len(nums)                               # O(1) -- length is cached
+nums.extend([6, 7])                       # O(k), k = len(extension)
+nums.count(1)                               # O(n) -- linear scan`,
+ cx:[["Fast \u2014 O(1)","append, pop() from the end, len, indexing by position"],["Slow \u2014 O(n)","pop(0), insert(0, ...), remove, index, 'in' on a list"]],
+ trigger:"Catch yourself the moment you write <code>list.pop(0)</code> or <code>x in a_list</code> inside a loop \u2014 that silently turns an O(n) algorithm into O(n\u00b2).",
+ decision:["Need O(1) membership checks? Use a <b>set</b>, not a list, for 'in'.","Need O(1) removal from the front? Use <b>collections.deque</b>, not a list."],
+ cxfoot:["feeds into: <b>Hashing</b>, <b>Two Pointers</b>"]},
+
+{track:"A \u00B7 For Loops",tier:"core",name:"For-Loop Variants You Should Know",
+ hook:"enumerate, zip, and reversed cover almost everything.",
+ approach:"A handful of for-loop forms cover nearly every interview problem. Reaching for the right one saves you from manual index bookkeeping, which is exactly where off-by-one bugs live.",
+ code:`for x in nums:                          # values only
+    ...
+
+for i in range(len(nums)):              # indices only
+    ...
+
+for i, x in enumerate(nums):            # index + value together
+    ...
+
+for a, b in zip(list1, list2):          # parallel iteration
+    ...
+
+for i in range(len(nums) - 1, -1, -1):  # reverse, by index
+    ...
+
+for x in reversed(nums):                 # reverse, by value
+    ...
+
+for i in range(0, len(nums), 2):          # step size (every 2nd)
+    ...`,
+ cx:[["enumerate / zip","O(n) \u2014 same cost as a plain loop, no reason not to use them"],["range(len(x))","only needed when you truly need the index; prefer enumerate otherwise"]],
+ trigger:"Reach for <code>enumerate</code> the instant you need both index and value \u2014 writing <code>nums[i]</code> inside a <code>range(len(nums))</code> loop is the tell you should have used it.",
+ decision:["Need index + value? <b>enumerate</b>, not range(len())","Need two sequences in lockstep? <b>zip</b>, not a manual index","Need to go backward? <b>reversed()</b> for values, <b>range(n-1,-1,-1)</b> for indices"],
+ cxfoot:["precedes: <b>Loop Patterns by Algorithm</b>"]},
+
+{track:"A \u00B7 Loop Patterns",tier:"core",name:"Loop Patterns by Algorithm",
+ hook:"The loop's shape often tells you which algorithm you're looking at.",
+ approach:"Different algorithms have a signature loop shape \u2014 recognizing the shape is half of recognizing the algorithm itself. Before writing any code, ask: what shape does this loop need?",
+ code:`Algorithm              Common Loop
+Arrays                  for num in nums
+Hashing                 for num in nums
+Two Pointers            while left < right
+Sliding Window          for right ... + while (shrink)
+Binary Search           while left <= right
+BFS                     while queue
+DFS                     recursion, or while stack
+Graphs                  for neighbor in graph[node]
+Trees                   dfs(node.left) / dfs(node.right)
+Dynamic Programming     for i in range(n)
+Matrix                  nested for loops
+Backtracking            recursive for over choices`,
+ cx:[["Shape is the trigger","recognizing 'while queue' means BFS, or 'while lo<=hi' means binary search, is often faster than re-deriving the algorithm from scratch"]],
+ trigger:"If you can name the loop shape a problem needs, you've basically already picked the algorithm \u2014 do this before writing the body of the loop.",
+ decision:["Nested while-loop shrinking a window inside a for-loop? That's <b>sliding window</b>, not a bug to avoid","A while-loop built around a queue almost always means <b>BFS</b>","A while-loop with lo/hi halving each step almost always means <b>binary search</b>"],
+ cxfoot:["ties together: <b>all five patterns below</b>"]},
+
+{track:"A \u00B7 Loop Patterns",tier:"core",name:"The 12 Loop Patterns to Memorize",
+ hook:"If you only drill one card in this whole deck, drill this one.",
+ approach:"Twelve loop shapes that, between them, cover the overwhelming majority of interview code. Fluency here means you're never spending mental effort on syntax \u2014 all of it goes toward the actual problem.",
+ code:`1.  for num in nums
+2.  for i, num in enumerate(nums)
+3.  for i in range(n)
+4.  for i in range(start, end)
+5.  for i in range(len(nums)-1, -1, -1)     # reverse
+6.  for x, y in zip(a, b)
+7.  nested for loops                          # matrix/grid
+8.  while left < right                        # Two Pointers
+9.  for right in range(...): + moving left    # Sliding Window
+10. while queue:                              # BFS
+11. recursive or stack-based DFS
+12. grid neighbor iteration via a
+    directions array: [(1,0),(-1,0),(0,1),(0,-1)]`,
+ cx:[["Coverage","these 12 shapes appear, in some combination, in the vast majority of Amazon-tagged interview problems"]],
+ trigger:"If a loop you're about to write doesn't match one of these 12 shapes, pause \u2014 you may be overcomplicating the structure.",
+ decision:["Treat this as a memorization target, not just a reference \u2014 the goal is typing these without thinking, the same way you don't think about typing 'def'"],
+ cxfoot:["compresses: <b>Loop Patterns by Algorithm</b>"]},
+
+{track:"A \u00B7 Loop Patterns",tier:"core",name:"The 8 While Loop Patterns You Need to Know",
+ hook:"Unlike for-loops, a while-loop's shape almost always names its algorithm.",
+ approach:"While-loops are far more diagnostic than for-loops in interviews \u2014 each shape below is tied to one specific pattern almost every time it appears. Star rating reflects how often each shows up across a typical interview loop.",
+ code:`Pattern              Algorithm                    Frequency
+while left <= right  Binary Search                \u2605\u2605\u2605\u2605\u2605
+while left < right   Two Pointers                 \u2605\u2605\u2605\u2605\u2605
+while window_invalid Sliding Window               \u2605\u2605\u2605\u2605\u2605
+while queue           BFS                         \u2605\u2605\u2605\u2605\u2605
+while stack            Iterative DFS / Mono Stack \u2605\u2605\u2605\u2605\u2605
+while current            Linked Lists              \u2605\u2605\u2605\u2605\u2605
+while heap                 Heap / Priority Queue     \u2605\u2605\u2605\u2605
+while condition               Simulation                \u2605\u2605\u2605`,
+ cx:[["The <= vs < distinction","while left <= right (Binary Search) and while left < right (Two Pointers) are ONE character apart and mean completely different algorithms -- read carefully"]],
+ trigger:"The moment you write \u201cwhile\u201d, you should already know which of these 8 shapes you're in \u2014 if you don't, you may not have fully identified the pattern yet.",
+ decision:["See 'while left <= right'? You're doing <b>Binary Search</b> -- the '=' matters, it means the range can shrink to a single element","See 'while left < right'? You're doing <b>Two Pointers</b> -- pointers can meet but not cross"],
+ cxfoot:["companion to: <b>Interview Tip: Associate the Loop With the Algorithm</b>"]},
+
+{track:"A \u00B7 Loop Patterns",tier:"build",name:"Interview Tip: Think in Patterns, Not Syntax",
+ hook:"Interviewers aren't testing whether you remember for-loop syntax.",
+ approach:"Interviewers are rarely testing whether you remember the exact syntax of a for loop. They're evaluating whether you recognize the correct iteration pattern for the problem. Once you recognize the pattern, writing the loop becomes almost mechanical.",
+ code:`Need to process every element once?        -> for num in nums
+Need the index too?                          -> enumerate()
+Need two positions moving toward each other? -> Two Pointers (while)
+Need a growing/shrinking contiguous range?    -> Sliding Window
+Need every row and column?                     -> Nested loops
+Need to explore a tree or graph?                 -> BFS (while queue)
+                                                     or DFS (recursion/stack)`,
+ cx:[["The real skill being tested","translating a NEED into a LOOP SHAPE, not recalling Python syntax"]],
+ trigger:"If you're pausing to remember how <code>enumerate</code> is spelled, that's a syntax gap. If you're pausing to decide whether you need it at all, that's the actual skill \u2014 and the one worth practicing.",
+ decision:["Run this table like a lookup, silently, before writing the first line of a loop"],
+ cxfoot:["for-loop counterpart to: <b>Associate the Loop With the Algorithm</b>"]},
+
+{track:"A \u00B7 Loop Patterns",tier:"build",name:"Interview Tip: Associate the Loop With the Algorithm",
+ hook:"While-loops in interviews are almost never generic \u2014 they name their algorithm.",
+ approach:"Unlike for-loops, while-loops in interviews are almost always tied to a specific algorithmic pattern. Recognizing these templates quickly helps you identify the intended solution before you even start writing code.",
+ code:`while left <= right   -> Binary Search
+while left < right    -> Two Pointers
+while queue:           -> Breadth-First Search (BFS)
+while stack:            -> Depth-First Search (iterative)
+                             or Monotonic Stack
+while current:            -> Linked List traversal
+while heap:                 -> Priority Queue / Heap
+while window_invalid:         -> Sliding Window`,
+ cx:[["Why this is diagnostic","a for-loop can mean almost anything; a while-loop's condition is usually a direct fingerprint of the algorithm"]],
+ trigger:"See a while-loop in a solution (yours or someone else's)? Name the algorithm from the condition alone before reading the body.",
+ decision:["This is the fastest way to reverse-engineer an unfamiliar solution someone else wrote \u2014 read the while condition first"],
+ cxfoot:["while-loop counterpart to: <b>Think in Patterns, Not Syntax</b>"]},
+
+{track:"A \u00B7 Conditionals",tier:"core",name:"The 15 Conditional Patterns You Should Know",
+ hook:"A frequency-ranked map of every conditional shape worth knowing cold.",
+ approach:"Fifteen conditional shapes, ranked by how often they actually show up and where. The five-star rows are non-negotiable fluency; the lower-starred ones are worth recognizing but come up less often.",
+ code:`Pattern                     Freq.   Used In
+if                           \u2605\u2605\u2605\u2605\u2605  Everywhere
+if / elif / else              \u2605\u2605\u2605\u2605\u2605  Decision trees
+Multiple conditions (and/or)   \u2605\u2605\u2605\u2605\u2605  Two Pointers, Sliding Window
+Truthy/Falsy checks             \u2605\u2605\u2605\u2605\u2605  Linked Lists, Trees
+Membership (in, not in)          \u2605\u2605\u2605\u2605\u2605  Hash Maps, Sets
+Equality (==, !=)                 \u2605\u2605\u2605\u2605\u2605  All algorithms
+Comparison (<, >, <=, >=)          \u2605\u2605\u2605\u2605\u2605  Binary Search
+Early return                        \u2605\u2605\u2605\u2605\u2605  Optimization
+Guard clauses                        \u2605\u2605\u2605\u2605\u2605  Edge cases
+Ternary operator                      \u2605\u2605\u2605    Simple assignments
+Chained comparisons                    \u2605\u2605\u2605    Range checks
+Identity (is, is not)                   \u2605\u2605\u2605    None checks
+all() / any()                            \u2605\u2605\u2605    Validation
+Pattern matching (match)                  \u2605       Rare in interviews
+Nested conditionals                        \u2605\u2605\u2605\u2605  Graphs, Trees`,
+ cx:[["Five-star rows","non-negotiable -- these appear in nearly every solution regardless of pattern"],["One-star rows","match/case is rarely worth reaching for live -- if/elif reads faster under time pressure anyway"]],
+ trigger:"If a five-star pattern here still requires you to think about its syntax, that's worth drilling before anything else in this deck.",
+ decision:["Nested conditionals rank high (4 stars) specifically because Graphs/Trees problems compound conditions (bounds check AND visited check AND value check) -- practice writing these as guard clauses instead of nesting them"],
+ cxfoot:["precedes: <b>The 12 Conditional Patterns to Memorize</b>"]},
+
+{track:"A \u00B7 Conditionals",tier:"core",name:"The 12 Conditional Patterns to Memorize",
+ hook:"The exact syntax for all twelve, side by side.",
+ approach:"The syntax itself, condensed to twelve lines \u2014 not because the syntax is hard, but because under time pressure, typing these without hesitation frees up all your attention for the actual problem.",
+ code:`# Basic if
+if condition:
+
+# if / elif / else
+if ...
+elif ...
+else ...
+
+# Truthy check
+if node:
+
+# None check
+if node is None:
+
+# Membership
+if x in seen:
+
+# Not in
+if node not in visited:
+
+# Early return
+if not nums:
+    return
+
+# Guard clause
+if len(nums) < 2:
+    return
+
+# Boundary check
+if r < 0 or r >= rows:
+
+# Two conditions
+if stack and stack[-1] > x:
+
+# Range check
+if 1 <= x <= 10:
+
+# Ternary
+answer = a if a > b else b`,
+ cx:[["is None vs == None","prefer 'is None' -- it checks identity, not equality, and avoids surprises with custom __eq__ implementations"]],
+ trigger:"Type all twelve of these from memory, cold, until none of them require conscious recall.",
+ decision:["Notice 'if stack and stack[-1] > x' -- this exact shape, short-circuit + index access, is the signature of a monotonic stack problem"],
+ cxfoot:["precedes: <b>Interview Tip: Recognize the Algorithm by the Condition</b>"]},
+
+{track:"A \u00B7 Conditionals",tier:"build",name:"Interview Tip: Recognize the Algorithm by the Condition",
+ hook:"Many algorithms give themselves away in their very first if-statement.",
+ approach:"Many algorithms have a \u201csignature\u201d conditional that immediately gives away the pattern. When you start recognizing these recurring conditionals, you'll often identify the intended algorithm before writing a single line of code \u2014 whether you're solving fresh or reading someone else's solution.",
+ code:`if not root:              -> Tree recursion
+if node in visited:        -> DFS / BFS
+if x in seen:                -> Hash Set / Hash Map
+if stack and ...:              -> Monotonic Stack
+if nums[mid] < target:           -> Binary Search
+if total < target:                 -> Two Pointers
+while char in seen:                  -> Sliding Window
+if r < 0 or r >= rows:                 -> Grid / Matrix traversal`,
+ cx:[["Why this is high-leverage","a conditional's shape is often visible before you've read the surrounding loop at all -- it's the fastest single tell in a piece of code"]],
+ trigger:"Reading an unfamiliar solution under time pressure? Scan for the first distinctive conditional before reading top to bottom.",
+ decision:["'if stack and ...' almost never appears outside a monotonic stack problem -- it's one of the most reliable single-line tells in this whole deck"],
+ cxfoot:["conditional counterpart to: <b>Associate the Loop With the Algorithm</b>"]},
+
+{track:"A \u00B7 Conditionals",tier:"build",name:"Conditionals & Boolean Idioms",
+ hook:"Some of these change correctness, not just style.",
+ approach:"The conditional idioms that come up constantly in interview code. Using them fluently reads as Python fluency \u2014 and some, like short-circuit evaluation, actually prevent bugs (an IndexError on empty input), not just save characters.",
+ code:`if 0 <= i < len(nums):           # chained comparison, bounds check
+    ...
+
+x = a if condition else b         # ternary expression
+
+if nums and nums[0] == target:     # short-circuit: nums checked
+    ...                            #  first, avoids IndexError
+
+if all(x > 0 for x in nums):        # every element satisfies it
+    ...
+
+if any(x < 0 for x in nums):         # at least one element does
+    ...
+
+if (n := len(nums)) > 10:             # walrus: assign AND test
+    print(n)`,
+ cx:[["all() / any()","O(n) worst case, but short-circuit \u2014 stop at the first False/True found"],["short-circuit and/or","the left side gating the right is what prevents an out-of-bounds error, not just a style choice"]],
+ trigger:"Reach for a short-circuit check the instant you're about to index into something that might be empty or out of range.",
+ decision:["Checking a bound before an index access? <b>short-circuit `and`</b>, in that order, every time","Checking a property across a whole collection? <b>all()/any()</b> instead of a manual loop with a flag variable"],
+ cxfoot:["prevents: the most common runtime error in interview code"]},
+
+/* ===== TRACK B: CORE PATTERNS ===== */
+{track:"B \u00B7 Two Pointers",tier:"core",name:"Two Pointers \u2014 Core Technique",
+ hook:"Two indices instead of a nested loop.",
+ practice:["Two Sum II (Beg.)","Valid Palindrome (Beg.)","3Sum (Int.)"],
+ approach:"Two indices move through a structure \u2014 usually a sorted array or string \u2014 to avoid a nested loop, collapsing an O(n\u00b2) brute force into O(n). The classic form converges from opposite ends.",
+ code:`def two_pointer_opposite_ends(arr, target):
+    left, right = 0, len(arr) - 1
+    while left < right:
+        current = arr[left] + arr[right]
+        if current == target:
+            return [left, right]
+        elif current < target:
+            left += 1           # need a bigger sum
+        else:
+            right -= 1           # need a smaller sum
+    return []`,
+ cx:[["Brute force","O(n\u00b2) \u2014 checking every pair"],["Two pointer","O(n) time, O(1) space \u2014 each pointer moves at most n times total"]],
+ trigger:"The input is <strong>sorted</strong> (or can cheaply be sorted), and you're looking for a pair, triplet, or palindrome-style property.",
+ decision:["Sorted array + pair/triplet target? <b>Two pointers</b>, not a hashmap or nested loop","Unsorted array + pair target? A <b>hashmap</b> is usually the better fit \u2014 sorting first costs O(n log n) you may not need"],
+ cxfoot:["precedes: <b>Two Pointers \u2014 Variants</b>"]},
+
+{track:"B \u00B7 Two Pointers",tier:"build",name:"Two Pointers \u2014 Same-Direction & Fast/Slow",
+ hook:"Not every two-pointer problem converges from opposite ends.",
+ practice:["Move Zeroes (Beg.)","Sort Colors (Int.)","Find the Duplicate Number (Adv.)"],
+ approach:"Beyond opposite-ends, two pointers also covers <strong>same-direction</strong> (one pointer marks a write position while another scans \u2014 in-place array modification) and <strong>fast/slow</strong> (one pointer moves twice as fast \u2014 cycle detection, finding a linked list's middle).",
+ code:`# same-direction: remove duplicates from a sorted array, in place
+def remove_duplicates(nums):
+    write = 1
+    for read in range(1, len(nums)):
+        if nums[read] != nums[write - 1]:
+            nums[write] = nums[read]
+            write += 1
+    return write
+
+# fast/slow: find the middle of a linked list
+def find_middle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+    return slow`,
+ cx:[["Same-direction","O(n) time, O(1) space \u2014 in-place compaction, no extra memory"],["Fast/slow","O(n) time, O(1) space \u2014 classic cycle-detection & middle-finding tool"]],
+ trigger:"Same-direction: you need to modify an array <strong>in place</strong> with no extra space. Fast/slow: the structure is a <strong>linked list</strong> and you need the middle, or a cycle check.",
+ decision:["In-place array compaction? <b>same-direction two pointers</b>","Linked list, need the middle or a cycle check? <b>fast/slow two pointers</b>, not a length count + second pass"],
+ cxfoot:["reuses: <b>Fast & Slow Pointers</b> from your DSA deck"]},
+
+{track:"B \u00B7 Sliding Window",tier:"core",name:"Sliding Window \u2014 Core Technique",
+ hook:"Update the window's result as it slides, don't recompute from scratch.",
+ practice:["Longest Substring w/o Repeating (Int.)","Minimum Window Substring (Adv.)"],
+ approach:"Maintain a contiguous window over a sequence and update its running result as the window slides, instead of recomputing the result from scratch for every possible window \u2014 turns an O(n\u00b7k) or worse brute force into O(n).",
+ code:`def longest_window_with_condition(s):
+    seen = set()
+    left = best = 0
+    for right, ch in enumerate(s):
+        while ch in seen:            # shrink until valid again
+            seen.discard(s[left])
+            left += 1
+        seen.add(ch)
+        best = max(best, right - left + 1)
+    return best`,
+ cx:[["Brute force","O(n\u00b2) or O(n\u00b3) \u2014 checking every substring/subarray"],["Sliding window","O(n) time \u2014 each element enters and leaves the window at most once"]],
+ trigger:"The prompt says <strong>\u201clongest / shortest / max / min contiguous</strong>\u201d subarray or substring satisfying some condition.",
+ decision:["Contiguous + a condition to maintain as you scan? <b>Sliding window</b>","Not contiguous (any subsequence, any order)? Sliding window doesn't apply \u2014 consider DP or backtracking instead"],
+ cxfoot:["precedes: <b>Sliding Window \u2014 Fixed vs. Variable</b>"]},
+
+{track:"B \u00B7 Sliding Window",tier:"build",name:"Sliding Window \u2014 Fixed vs. Variable Width",
+ hook:"Given a size k, or solving for the size itself \u2014 different templates.",
+ practice:["Longest Repeating Char Replacement (Adv.)","Partition Labels (Int.)"],
+ approach:"A <strong>fixed-width</strong> window (size k given) only needs to add the new element and remove the one falling out the back each step. A <strong>variable-width</strong> window grows the right edge freely and shrinks the left edge only when a condition breaks.",
+ code:`# fixed width: max sum of any k consecutive elements
+def max_sum_fixed_window(nums, k):
+    window_sum = sum(nums[:k])
+    best = window_sum
+    for i in range(k, len(nums)):
+        window_sum += nums[i] - nums[i - k]   # slide by one
+        best = max(best, window_sum)
+    return best`,
+ cx:[["Fixed width","O(n) time, O(1) space \u2014 no need to track window contents beyond a running sum"],["Variable width","O(n) time, O(n) or O(charset) space if tracking window contents (a set/counter)"]],
+ trigger:"Fixed width: the prompt gives you an explicit window size k. Variable width: the window size itself is what you're solving for.",
+ decision:["Window size given explicitly? <b>fixed-width</b> \u2014 just track a running sum/count, no set needed","Window size is the answer itself? <b>variable-width</b> \u2014 need to track window contents to know when to shrink"],
+ cxfoot:["reuses: <b>Array</b> mechanics from Track A"]},
+
+{track:"B \u00B7 Sliding Window",tier:"build",name:"Common LeetCode Problems: Two Pointers & Sliding Window",
+ hook:"The full curated list, by difficulty \u2014 not just a sample.",
+ approach:"The complete practice set for the two-pointer family (opposite-ends, same-direction, fast/slow) and sliding window, organized by difficulty. Run the Master Decision Tree on each one before looking up which sub-pattern it actually is.",
+ code:`BEGINNER
+  Two Sum II
+  Valid Palindrome
+  Reverse String
+  Merge Sorted Array
+  Remove Duplicates from Sorted Array
+  Remove Element
+  Move Zeroes
+
+INTERMEDIATE
+  Container With Most Water
+  3Sum
+  4Sum
+  Sort Colors
+  Partition Labels
+  Trapping Rain Water
+  Backspace String Compare
+
+ADVANCED
+  Minimum Window Substring        (Sliding Window)
+  Longest Repeating Character Replacement
+  Find the Duplicate Number       (Fast & Slow Cycle Detection)
+  Linked List Cycle II`,
+ cx:[["Beginner set","mostly same-direction two pointers -- in-place array edits"],["Advanced set","mixes sliding window and fast/slow cycle detection -- notice these aren't 'harder two pointers,' they're a different sub-pattern entirely"]],
+ trigger:"Before checking the answer key in your head, run each title through the Array & String decision tree card and commit to a sub-pattern first.",
+ decision:["Struggling to tell 3Sum from 4Sum's approach? Both are <b>sort + two pointers</b>, just with one more fixed outer index","'Cycle Detection' in a title is almost always <b>fast/slow pointers</b>, regardless of what data structure it's on"],
+ cxfoot:["full family: <b>Two Pointers</b> + <b>Sliding Window</b>"]},
+
+{track:"B \u00B7 Hashing",tier:"core",name:"Hashing \u2014 Core Technique",
+ hook:"Trade O(n) space for O(1) average lookup.",
+ practice:["Two Sum (Beg.)","Group Anagrams (Int.)","Top K Frequent Elements (Int.)"],
+ approach:"The most common shapes: a <strong>frequency counter</strong>, a <strong>seen-set</strong> for existence checks, and a <strong>complement lookup</strong> (has the value I need already appeared?).",
+ code:`from collections import Counter, defaultdict
+
+# frequency counter
+freq = Counter(nums)                    # {value: count}
+
+# seen-set for existence / duplicate checks
+seen = set()
+for x in nums:
+    if x in seen:
+        return True    # duplicate found
+    seen.add(x)
+
+# complement lookup (classic two-sum shape)
+seen_idx = {}
+for i, x in enumerate(nums):
+    if target - x in seen_idx:
+        return [seen_idx[target - x], i]
+    seen_idx[x] = i
+
+# group by a derived key
+groups = defaultdict(list)
+for word in words:
+    groups[tuple(sorted(word))].append(word)   # anagram grouping`,
+ cx:[["Linear scan for existence","O(n) per check \u2014 O(n\u00b2) if repeated inside a loop"],["Hashmap/set lookup","O(1) average per check, O(n) total across a full scan"]],
+ trigger:"You catch yourself thinking <strong>\u201cdoes this value already exist / have I seen this before / what's the complement I need.\u201d</strong>",
+ decision:["Just need existence? <b>set</b>","Need counts? <b>Counter</b> or <b>defaultdict(int)</b>","Need to group by a derived property? <b>defaultdict(list)</b> keyed on that property"],
+ cxfoot:["precedes: <b>Hashing \u2014 vs. Sorting/Two Pointers</b>"]},
+
+{track:"B \u00B7 Hashing",tier:"build",name:"Hashing \u2014 When It Beats Sorting or Two Pointers",
+ hook:"Same problem, two solutions \u2014 here's the actual tie-breaker.",
+ practice:["Contains Duplicate (Beg.)","Longest Consecutive Sequence (Adv.)"],
+ approach:"Hashing and two-pointer/sorting solve overlapping problems (like pair-sum), but the deciding factor is usually whether the input is already sorted and whether you need indices in the original, unsorted order.",
+ code:`# two-sum, unsorted, need ORIGINAL indices -> hashing wins
+# (sorting would destroy the original index order)
+def two_sum_unsorted(nums, target):
+    seen = {}
+    for i, x in enumerate(nums):
+        if target - x in seen:
+            return [seen[target - x], i]
+        seen[x] = i
+    return []
+
+# two-sum, ALREADY sorted, don't need original indices
+# -> two pointers wins: O(1) space instead of O(n)
+def two_sum_sorted(nums, target):
+    lo, hi = 0, len(nums) - 1
+    while lo < hi:
+        s = nums[lo] + nums[hi]
+        if s == target: return [lo, hi]
+        if s < target: lo += 1
+        else: hi -= 1
+    return []`,
+ cx:[["Hashing","O(n) time, O(n) space \u2014 works on unsorted input, preserves original indices"],["Two pointers (sorted)","O(n) time, O(1) space \u2014 cheaper, but requires sorted input or destroys index order"]],
+ trigger:"When two patterns both solve the problem, the tie-breaker is usually: do I need O(1) space badly enough to sort, and can I afford to lose original order?",
+ decision:["Need original indices, or input can't be sorted? <b>Hashing</b>","Already sorted (or sorting cost is irrelevant) and want O(1) space? <b>Two pointers</b>"],
+ cxfoot:["companion to: <b>Two Pointers \u2014 Core Technique</b>"]},
+
+{track:"B \u00B7 BFS/DFS",tier:"core",name:"BFS \u2014 Template & Complexity",
+ hook:"Layer by layer, guarantees the shortest path.",
+ practice:["Binary Tree Level Order (Beg.)","Number of Islands (Int.)","Rotting Oranges (Int.)"],
+ approach:"Explore a graph or grid layer by layer using a queue \u2014 guarantees the shortest path in an unweighted graph, since it exhausts every node at distance d before moving to distance d+1.",
+ code:`from collections import deque
+
+def bfs_shortest_path(graph, start, target):
+    visited = {start}
+    queue = deque([(start, 0)])       # (node, distance)
+    while queue:
+        node, dist = queue.popleft()
+        if node == target:
+            return dist
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)   # mark on ENQUEUE, not dequeue
+                queue.append((neighbor, dist + 1))
+    return -1   # unreachable`,
+ cx:[["Time","O(V + E) \u2014 every vertex and edge visited once"],["Space","O(V) \u2014 the queue and visited set, worst case hold every vertex"]],
+ trigger:"The prompt asks for <strong>shortest path, fewest steps, or minimum moves</strong> in an unweighted graph or grid.",
+ decision:["Need shortest/fewest steps? <b>BFS</b>, not DFS \u2014 DFS finds A path, not necessarily the shortest one","Mark visited when you ENQUEUE, not when you dequeue \u2014 marking late lets the same node get added to the queue multiple times"],
+ cxfoot:["precedes: <b>DFS \u2014 Templates & BFS vs. DFS</b>"]},
+
+{track:"B \u00B7 BFS/DFS",tier:"core",name:"DFS \u2014 Templates & BFS vs. DFS",
+ hook:"Go deep first \u2014 for connectivity, cycles, and backtracking, not shortest path.",
+ practice:["Course Schedule (Int.)","Number of Islands (Int.)","Word Search II (Adv.)"],
+ approach:"Explore as deep as possible before backtracking. Use recursion for the natural version, or an explicit stack when recursion depth risks a stack overflow, or when you need finer control over traversal order.",
+ code:`# recursive DFS
+def dfs_recursive(graph, node, visited):
+    visited.add(node)
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            dfs_recursive(graph, neighbor, visited)
+
+# iterative DFS (explicit stack)
+def dfs_iterative(graph, start):
+    visited = {start}
+    stack = [start]
+    while stack:
+        node = stack.pop()
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                visited.add(neighbor)
+                stack.append(neighbor)`,
+ cx:[["Time","O(V + E) \u2014 same as BFS, every vertex and edge visited once"],["Space","O(V) worst case \u2014 recursion stack (recursive) or explicit stack (iterative)"]],
+ trigger:"You need to explore <strong>every path</strong>, detect a cycle, do a topological sort, or the problem is really about connectivity, not shortest distance.",
+ decision:["Need shortest path? <b>BFS</b>","Need to explore all paths, detect cycles, or backtrack (subsets/permutations)? <b>DFS</b>","Recursion depth could exceed Python's ~1000 limit? use the <b>iterative</b> version"],
+ cxfoot:["reuses: <b>Backtracking</b> from your DSA deck"]},
+
+{track:"B \u00B7 Binary Search",tier:"core",name:"Binary Search \u2014 Classic Template",
+ hook:"Halve the search space \u2014 works on more than just sorted arrays.",
+ practice:["Binary Search (Beg.)","Search in Rotated Sorted Array (Int.)"],
+ approach:"Halve the search space each step over anything monotonic \u2014 most obviously a sorted array, but also any answer space where \u201csmaller works, bigger doesn't\u201d (or vice versa) holds.",
+ code:`def binary_search(arr, target):
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi:
+        mid = lo + (hi - lo) // 2       # good overflow-avoidance
+        if arr[mid] == target:           #  habit even in Python
+            return mid
+        elif arr[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1`,
+ cx:[["Linear scan","O(n)"],["Binary search","O(log n) time, O(1) space"]],
+ trigger:"The input is <strong>sorted</strong>, or you can define a boolean predicate over a range that's monotonic (all false, then all true).",
+ decision:["Sorted array, exact value lookup? <b>classic binary search</b>","'Find the minimum X such that condition holds'? <b>binary search on the answer</b> \u2014 not classic search"],
+ cxfoot:["precedes: <b>Binary Search on the Answer</b>"]},
+
+{track:"B \u00B7 Binary Search",tier:"build",name:"Binary Search \u2014 On the Answer",
+ hook:"'Minimize the maximum' phrasing? This is almost always the pattern.",
+ practice:["Koko Eating Bananas (Adv.)","Capacity To Ship Packages (Adv.)"],
+ approach:"When the prompt asks \u201cfind the minimum/maximum value such that some condition holds,\u201d binary search the <strong>answer space itself</strong> rather than the array \u2014 as long as the condition is monotonic (once true, stays true as the value increases, or vice versa).",
+ code:`def min_feasible_value(lo, hi, is_feasible):
+    while lo < hi:
+        mid = lo + (hi - lo) // 2
+        if is_feasible(mid):
+            hi = mid              # mid works -- something smaller might too
+        else:
+            lo = mid + 1           # mid doesn't work -- go bigger
+    return lo
+
+# example predicate: "can we ship all packages within N
+# days using capacity mid?" -- classic binary-search-on-answer shape`,
+ cx:[["Brute force","O(range) \u2014 try every candidate value one by one"],["Binary search on the answer","O(range \u00d7 check_cost) \u2014 log(range) iterations of a feasibility check"]],
+ trigger:"The prompt phrasing is <strong>\u201cfind the minimum/maximum X such that\u2026\u201d</strong> and increasing X only ever makes the condition easier (or only ever harder) to satisfy.",
+ decision:["Direct value lookup in sorted data? <b>classic binary search</b>","'Minimize the maximum' / 'maximize the minimum' phrasing? <b>binary search on the answer</b>, almost always"],
+ cxfoot:["reuses: <b>Binary Search</b> from your DSA deck"]},
+
+/* ===== TRACK C: DECISION TREES ===== */
+{track:"C \u00B7 Decision Trees",tier:"core",name:"Quick Router: Which Family First?",
+ hook:"The one question that sends you to the right detailed tree.",
+ approach:"Before running either detailed flowchart, ask this one question first \u2014 it's the fastest fork in the whole deck and tells you which of the two detailed trees below actually applies.",
+ code:`What kind of input is it?
+
+Graph / Tree / Grid?
+        \u2502
+       Yes \u2500\u2500\u2500\u2500\u2500\u2500\u25BA  see: "Graph & Tree Patterns" tree
+
+Array / String (sorted, sortable,
+or scannable)?
+        \u2502
+       Yes \u2500\u2500\u2500\u2500\u2500\u2500\u25BA  see: "Array & String Patterns" tree
+
+Neither, or still unsure?
+        \u2502
+       \u2500\u2500\u2500\u2500\u2500\u2500\u25BA  reconsider: Dynamic Programming,
+                   Backtracking, or a Heap/Top-K
+                   problem instead`,
+ cx:[["Run this in under 10 seconds","this card is a router, not a solution -- it just picks which detailed tree to run next"]],
+ trigger:"Run this the instant you finish reading any new prompt, before touching the keyboard.",
+ decision:["A prompt mentioning nodes, neighbors, or connections \u2014 even if not phrased as 'graph' \u2014 almost always means the Graph & Tree tree applies"],
+ cxfoot:["routes to: <b>both detailed trees below</b>"]},
+
+{track:"C \u00B7 Decision Trees",tier:"core",name:"Decision Tree: Array & String Patterns",
+ hook:"Sorted? Eliminate by moving left/right? Modify in place? Contiguous?",
+ approach:"The full branching flowchart for array/string prompts, run top to bottom \u2014 each \u201cNo\u201d falls through to the next question rather than dead-ending.",
+ code:`Is the data sorted (or can it cheaply
+be sorted)?
+        \u2502
+       Yes
+        \u2502
+Can I eliminate possibilities
+by moving left or right?
+        \u2502
+       Yes
+        \u2502
+   Use Opposite Two Pointers
+
+
+Do I need to modify the array
+in-place while scanning?
+        \u2502
+       Yes
+        \u2502
+   Use Fast & Slow Pointers
+
+
+Do I need the longest or shortest
+contiguous subarray/substring?
+        \u2502
+       Yes
+        \u2502
+   Use Sliding Window
+
+
+Do I need a specific value, or does
+the prompt say "min/max X such that..."?
+        \u2502
+       Yes
+        \u2502
+   Use Binary Search
+
+
+Not sorted, or none of the above fit?
+        \u2502
+Do I need O(1) existence, frequency,
+or complement lookups?
+        \u2502
+       Yes
+        \u2502
+   Use Hashing`,
+ cx:[["Fall-through logic","every 'No' along this chain simply moves to the next question -- you don't need an explicit No branch to see where it leads"]],
+ trigger:"Run this top to bottom the moment the Quick Router sends you here \u2014 stop at the first 'Yes' you hit.",
+ decision:["Sorted AND need to eliminate possibilities by moving inward? That's <b>Opposite Two Pointers</b>, the very first branch, not a coincidence \u2014 it's the highest-frequency array pattern","Landed on Hashing at the bottom? That's correct \u2014 hashing is the fallback for 'none of the sorted-array patterns fit', not a last resort to feel bad about"],
+ cxfoot:["covers: <b>Two Pointers</b>, <b>Sliding Window</b>, <b>Binary Search</b>, <b>Hashing</b>"]},
+
+{track:"C \u00B7 Decision Trees",tier:"core",name:"Decision Tree: Graph & Tree Patterns",
+ hook:"Shortest path, or explore everything? That's the whole fork.",
+ approach:"The full branching flowchart for graph, tree, and grid prompts \u2014 a much shorter tree than the array/string one, because the question that matters most is almost always the first one.",
+ code:`Is the input a graph, tree, or grid?
+        \u2502
+       Yes
+        \u2502
+Do I need the shortest path
+or fewest steps?
+        \u2502
+       Yes
+        \u2502
+   Use BFS
+
+
+Do I need to explore ALL paths,
+detect a cycle, or backtrack?
+        \u2502
+       Yes
+        \u2502
+   Use DFS
+
+
+Do I need a specific ordering that
+respects dependencies?
+        \u2502
+       Yes
+        \u2502
+   Use Topological Sort
+   (BFS/Kahn's, or DFS-based)`,
+ cx:[["Why this tree is short","BFS vs. DFS is a near-binary choice once you know whether distance/shortest-path matters -- there isn't much more decision surface here"]],
+ trigger:"Run this the instant the Quick Router sends you to a graph/tree/grid prompt.",
+ decision:["'Shortest' or 'fewest' anywhere in the prompt is the single strongest BFS signal in this whole deck","'All paths', 'every combination', or 'detect a cycle' points to DFS, even when the input looks like a simple grid"],
+ cxfoot:["covers: <b>BFS</b>, <b>DFS</b>, and their most common extension (Topological Sort)"]},
+
+{track:"C \u00B7 Decision Trees",tier:"core",name:"Complexity Cheat Sheet, All Five Patterns",
+ hook:"One table to sanity-check that you actually optimized anything.",
+ approach:"The fastest way to sanity-check whether the pattern you picked actually improves on brute force \u2014 hold this table in memory, not just each pattern's card individually.",
+ code:`Pattern           Brute Force        Optimized
+Two Pointers      O(n^2)             O(n) time, O(1) space
+Sliding Window    O(n^2) or O(n^3)   O(n) time
+Hashing           O(n^2)             O(n) time, O(n) space
+BFS / DFS         --                 O(V + E) time, O(V) space
+Binary Search     O(n)               O(log n) time, O(1) space`,
+ cx:[["The pattern to notice","every optimized column trades SPACE (hashing) or a SORTED/MONOTONIC assumption (two pointers, binary search) for TIME"]],
+ trigger:"If your 'optimized' solution doesn't visibly beat this table's brute-force column, you haven't actually optimized yet.",
+ decision:["State both the brute force AND optimized complexity out loud, every time \u2014 the comparison IS the signal being scored, not just the final number"],
+ cxfoot:["reuses: <b>Big O Notation</b> from your DSA deck"]},
+
+{track:"C \u00B7 Decision Trees",tier:"build",name:"Common Combinations",
+ hook:"Many real problems stack two patterns, not one.",
+ approach:"Many real interview problems combine two of these patterns rather than using just one \u2014 recognizing the combination is often the actual insight being tested, not a sign you're missing something entirely different.",
+ code:`Hashing + Sliding Window
+  -> longest substring without repeating characters
+     (set/map tracks window CONTENTS while it slides)
+
+Sorting + Two Pointers
+  -> 3Sum (sort first to enable the two-pointer inner loop)
+
+Hashing + BFS
+  -> word ladder (set of valid words + BFS for shortest
+     transformation path)
+
+Binary Search + Greedy
+  -> "minimize the maximum" problems (binary search the
+     answer, greedy check feasibility at each candidate)
+
+Heap + Hashing
+  -> top-K frequent elements (hashmap counts frequency,
+     heap tracks the top K)`,
+ cx:[["Why this matters","a problem that resists a single clean pattern is often two patterns stacked, not evidence you're missing a sixth pattern entirely"]],
+ trigger:"Your chosen pattern gets you 80% of the way but leaves one requirement unsolved (like tracking window contents) \u2014 check whether a second pattern closes the gap.",
+ decision:["Stuck after applying one pattern? Ask: does this ALSO look like a second pattern from the list, applied together with the first?"],
+ cxfoot:["closes the deck: <b>combine, don't just select</b>"]},
+];
+
+/* ---- syntax highlighter ---- */
+const KW = new Set(["def","class","return","if","elif","else","while","for","in","not","and","or","is","None","True","False","import","from","self","del","pass","break","continue","lambda","yield","with","as","try","except","finally","raise","global","nonlocal"]);
+const FN = new Set(["print","len","range","set","dict","list","tuple","sum","max","min","append","pop","get","enumerate","sorted","zip","reversed","Counter","defaultdict","deque","insert","remove","index","extend","count","sort","reverse","all","any","discard","add"]);
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function highlight(code){
+  return code.replace(/(#.*)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|([A-Za-z_]\w*)|(\d+)|([\s\S])/g,
+    (m,com,str,word,num,other)=>{
+      if(com!==undefined)  return '<span class="c-com">'+esc(com)+'</span>';
+      if(str!==undefined)  return '<span class="c-str">'+esc(str)+'</span>';
+      if(word!==undefined){
+        if(KW.has(word)) return '<span class="c-kw">'+word+'</span>';
+        if(FN.has(word)) return '<span class="c-fn">'+word+'</span>';
+        return esc(word);
+      }
+      if(num!==undefined)  return '<span class="c-num">'+num+'</span>';
+      return esc(other);
+    });
+}
+
+/* ---- app ---- */
+const TRACKS = ["All", ...Array.from(new Set(CARDS.map(c=>c.track)))];
+let filter="All", deck=CARDS.slice(), idx=0;
+const $=id=>document.getElementById(id);
+const TIER_LABEL={core:"Core",build:"Supporting"};
+
+function buildFilters(){
+  const box=$("filters"); box.innerHTML="";
+  TRACKS.forEach(t=>{
+    const b=document.createElement("button");
+    b.className="chip"+(t===filter?" active":"");
+    b.textContent=t;
+    b.onclick=()=>{filter=t;applyFilter();};
+    box.appendChild(b);
+  });
+}
+function applyFilter(){
+  deck = filter==="All" ? CARDS.slice() : CARDS.filter(c=>c.track===filter);
+  idx=0; buildFilters(); render();
+}
+function render(){
+  const c=deck[idx];
+  $("card").classList.remove("flipped");
+  $("f-track").textContent=c.track;
+  $("b-track").textContent=c.track;
+  ["f","b"].forEach(p=>{
+    const el=$(p+"-tier");
+    el.textContent=TIER_LABEL[c.tier];
+    el.className="tier "+c.tier;
+  });
+  $("f-name").textContent=c.name;
+  $("f-hook").textContent=c.hook;
+  const pw=$("f-practicewrap");
+  if(c.practice && c.practice.length){
+    pw.style.display="";
+    $("f-practice").innerHTML=c.practice.map(p=>`<span class="practicepill">${p}</span>`).join("");
+  } else { pw.style.display="none"; }
+  $("b-name").textContent=c.name;
+  $("b-meta").textContent=c.track;
+  $("b-approach").innerHTML=c.approach;
+  $("b-code").innerHTML=highlight(c.code);
+  $("b-cxbox").innerHTML=c.cx.map(([label,text])=>`<div class="cxrow"><b>${label}:</b> ${text}</div>`).join("");
+  const trWrap=$("b-triggerwrap");
+  if(c.trigger){ trWrap.style.display=""; $("b-trigger").innerHTML=c.trigger; }
+  else { trWrap.style.display="none"; }
+  const decWrap=$("b-decisionwrap");
+  if(c.decision && c.decision.length){
+    decWrap.style.display="";
+    $("b-decision").innerHTML=c.decision.map(d=>`<div class="ditem">${d}</div>`).join("");
+  } else { decWrap.style.display="none"; }
+  $("b-cx").innerHTML=(c.cxfoot||[]).map(x=>"<span>"+x+"</span>").join("");
+  $("pos").textContent=idx+1;
+  $("total").textContent=deck.length;
+  $("deckname").textContent=filter;
+  const bs=document.querySelector(".backscroll"); if(bs) bs.scrollTop=0;
+}
+function flip(e){if(e)e.stopPropagation();$("card").classList.toggle("flipped");}
+function next(e){if(e)e.stopPropagation();idx=(idx+1)%deck.length;render();}
+function prev(e){if(e)e.stopPropagation();idx=(idx-1+deck.length)%deck.length;render();}
+function shuffle(e){if(e)e.stopPropagation();for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}idx=0;render();}
+function coreOnly(e){if(e)e.stopPropagation();filter="All";deck=CARDS.filter(c=>c.tier==="core");idx=0;buildFilters();$("deckname").textContent="Core";render();}
+function reset(e){if(e)e.stopPropagation();filter="All";applyFilter();}
+document.addEventListener("keydown",ev=>{
+  if(ev.key==="ArrowRight")next();
+  else if(ev.key==="ArrowLeft")prev();
+  else if(ev.key===" "){ev.preventDefault();flip();}
+  else if(ev.key.toLowerCase()==="s")shuffle();
+  else if(ev.key.toLowerCase()==="c")coreOnly();
+});
+buildFilters();render();
+</script>
+</body>
+</html>
